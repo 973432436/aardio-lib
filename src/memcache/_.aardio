@@ -1,0 +1,75 @@
+
+/**
+memcache 配置文件支持库，解决多线程下文件读写冲突问题（fsys.config 写法保持一致）
+[memcache] 服务安装
+	32位系统 1.4.5版本：http://static.runoob.com/download/memcached-1.4.5-x86.zip
+	下载后解压到：
+		C:\memcached\memcached-1.4.5-x86\memcached.exe
+[memcache] 服务开机任务启动
+	schtasks /create /sc onstart /tn memcached /tr "'C:\memcached\memcached-1.4.5-x86\memcached.exe' -m 2048"
+[memcache] 服务开机任务移除
+	schtasks /delete /tn memcached
+参考文档：
+	https://www.runoob.com/memcached/window-install-memcached.html
+**/
+class memcache{
+	ctor( server_addr = "127.0.0.1:11211" ) {
+		if( _cache[server_addr] ) return _cache[server_addr];
+		 this._mcached = ..libMemcached( server_addr );
+		 this._server_addr = server_addr; 
+		 _cache[server_addr] = this;
+		 ..subscribe("beforeSystemEndSesssion",function(){
+		 	this.saveAll();
+		 } );
+	}; 
+	@_meta;
+};
+namespace memcache{
+	_cache = { @{_weak="kv"}; }
+	_meta = {
+		saveAll = function(){
+			for(k,cfg in owner) {
+				if( ( type(k) != "string" ) || ( k[1] == '_'# ) ) continue;
+				if( type(cfg)==type.table ){
+    				var val = ..web.json.stringify( cfg );
+    				owner._mcached.set( k, val );
+    			}else{
+    				owner._mcached.set( k, cfg );
+    			}
+			} 
+		}; 
+		_get = function(k) {
+			if( type(k) != type.string ) return;
+			
+			if(k[1] == '_'#) // e.g. _safearray,_struct
+				return;
+			
+			if( k == "saveAll" ){
+				return self._meta.saveAll;
+			}
+			var cfg = owner._mcached.get( k );
+			if( (#cfg) && (type(cfg)==type.string) && (cfg[1]==91/*[*/ || cfg[1]==123/*}*/) ){
+				cfg = ..web.json.parse(cfg);
+			}
+			if( !(cfg) ){
+				cfg = {};
+			}
+			owner[[k]] = cfg;
+			return cfg; 
+		}
+		_set = function(k,v){
+			if( ( type(k) == "string" ) && ( k[1] == '_'# ) ){
+				owner[[k]] = v;
+				return;	
+			}
+			error('对象的成员对应只读的配置文件名称,不可修改!',2);//可使用 [[]] 操作符修改
+		}
+	}
+}
+/**intellisense()
+memcache = 配置文件支持库（使用方法与 fsys.config 保持一致）,\n使用 memcache 对象作为名字空间时
+memcache("127.0.0.1:11211") = 创建 memcache 对象,\n参数指定默认目录.\nmemcache对象的成员都映射到 memcache-server 对应的键名下.
+memcache() = 在默认服务器"127.0.0.1:11211"下创建 memcache 对象;\n!memcache.
+!memcache.saveAll() = 写入所有配置到文件
+!memcache.? = 配置文件名,\n读写配置并序列化为一个表对象,\n表的成员值可以是支持序列化的普通变量,支持table对象\n配置文件在首次使用时自动加载,退出程序前自动保存\n!memcache.
+end intellisense**/
