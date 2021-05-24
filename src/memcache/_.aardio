@@ -1,4 +1,4 @@
-
+import libMemcached;
 /**
 memcache 配置文件支持库，解决多线程下文件读写冲突问题（fsys.config 写法保持一致）
 [memcache] 服务安装
