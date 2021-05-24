@@ -1,0 +1,7 @@
+*.bat
+*.git
+*.svn
+*.project
+*.settings
+*.cache
+*.log
