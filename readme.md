@@ -4,9 +4,17 @@
 #### 如何使用
 
 ```js
-//安装扩展库
+// 安装扩展库
 _IMPORTURL["库名称"] = "库链接"
 import 库名称; //导入刚安装的扩展库
+
+// 调用示例--github
+_IMPORTURL["memcache"] = "https://github.com/973432436/aardio-lib/raw/main/released/memcache.tar.lzma"
+import memcache;
+
+// 调用示例--gitee
+_IMPORTURL["memcache"] = "https://gitee.com/fancanjie/aardio-lib/raw/main/released/memcache.tar.lzma"
+import memcache;
 ```
 
 ### 目录结构
