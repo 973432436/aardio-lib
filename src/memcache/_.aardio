@@ -48,7 +48,7 @@ namespace memcache{
 				return self._meta.saveAll;
 			}
 			var cfg = owner._mcached.get( k );
-			if( (#cfg) && (type(cfg)==type.string) && (cfg[1]==91/*[*/ || cfg[1]==123/*}*/) ){
+			if( (#cfg) && (type(cfg)==type.string) && (cfg[1]==91/*[*/ || cfg[1]==123/*{*/) ){
 				cfg = ..web.json.parse(cfg);
 			}
 			if( !(cfg) ){
