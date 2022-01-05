@@ -5,3 +5,4 @@
 *.settings
 *.cache
 *.log
+.vscode/

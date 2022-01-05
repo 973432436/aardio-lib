@@ -31,10 +31,9 @@ namespace memcache{
 			for(k,cfg in owner) {
 				if( ( type(k) != "string" ) || ( k[1] == '_'# ) ) continue;
 				if( type(cfg)==type.table ){
-    				var val = ..web.json.stringify( cfg );
-    				owner._mcached.set( k, val );
+    				owner._mcached.set( k, ..web.json.stringify( cfg ), tonumber( 86400*30 ) );
     			}else{
-    				owner._mcached.set( k, cfg );
+    				owner._mcached.set( k, cfg, tonumber( 86400*30 ) );
     			}
 			} 
 		}; 
@@ -48,7 +47,7 @@ namespace memcache{
 				return self._meta.saveAll;
 			}
 			var cfg = owner._mcached.get( k );
-			if( (#cfg) && (type(cfg)==type.string) && (cfg[1]==91/*[*/ || cfg[1]==123/*{*/) ){
+			if( (#cfg) && (type(cfg)==type.string) && (cfg[1]==91/*[*/ || cfg[1]==123/*}*/) ){
 				cfg = ..web.json.parse(cfg);
 			}
 			if( !(cfg) ){
