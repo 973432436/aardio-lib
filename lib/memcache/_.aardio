@@ -13,10 +13,11 @@ memcache 配置文件支持库，解决多线程下文件读写冲突问题（fs
 	https://www.runoob.com/memcached/window-install-memcached.html
 **/
 class memcache{
-	ctor( server_addr = "127.0.0.1:11211" ) {
+	ctor( server_addr = "127.0.0.1:11211", prefix = "" ) {
 		if( _cache[server_addr] ) return _cache[server_addr];
 		 this._mcached = ..libMemcached( server_addr );
-		 this._server_addr = server_addr; 
+		 this._server_addr = server_addr;
+		 this._prefix = tostring( prefix );
 		 _cache[server_addr] = this;
 		 ..subscribe("beforeSystemEndSesssion",function(){
 		 	this.saveAll();
@@ -29,17 +30,18 @@ namespace memcache{
 	_meta = {
 		saveAll = function(){
 			for(k,cfg in owner) {
+				k = ..string.len( owner._prefix )>0? ( tostring( owner._prefix ) ++ '_' ++ tostring( k ) ) : k;
 				if( ( type(k) != "string" ) || ( k[1] == '_'# ) ) continue;
 				if( type(cfg)==type.table ){
     				owner._mcached.set( k, ..web.json.stringify( cfg ), tonumber( 86400*30 ) );
     			}else{
-    				owner._mcached.set( k, cfg, tonumber( 86400*30 ) );
+    				owner._mcached.set( k, ..tostring( cfg ), tonumber( 86400*30 ) );
     			}
 			} 
 		}; 
 		_get = function(k) {
+			k = ..string.len( owner._prefix )>0? ( tostring( owner._prefix ) ++ '_' ++ tostring( k ) ) : k;
 			if( type(k) != type.string ) return;
-			
 			if(k[1] == '_'#) // e.g. _safearray,_struct
 				return;
 			
@@ -55,14 +57,15 @@ namespace memcache{
 			}
 			owner[[k]] = cfg;
 			return cfg; 
-		}
+		};
 		_set = function(k,v){
+			k = ..string.len( owner._prefix )>0? ( tostring( owner._prefix ) ++ '_' ++ tostring( k ) ) : k;
 			if( ( type(k) == "string" ) && ( k[1] == '_'# ) ){
 				owner[[k]] = v;
 				return;	
 			}
 			error('对象的成员对应只读的配置文件名称,不可修改!',2);//可使用 [[]] 操作符修改
-		}
+		};
 	}
 }
 /**intellisense()
