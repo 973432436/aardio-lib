@@ -32,12 +32,12 @@ namespace memcache{
 		saveAll = function(){
 			for(k,cfg in owner) {
 				if( ( type(k) != "string" ) || ( k[1] == '_'# ) ) continue;
-				k = ..string.len( owner._prefix )>0? ( tostring( owner._prefix ) ++ '_' ++ tostring( k ) ) : k;
-				k = ..string.len( k )>32? ..crypt.md5( k ): k;
+				kname = ..string.len( owner._prefix )>0? ( tostring( owner._prefix ) ++ '_' ++ tostring( k ) ) : k;
+				kname = ..string.len( kname )>32? ..crypt.md5( kname ): kname;
 				if( type(cfg)==type.table ){
-    				owner._mcached.set( k, ..web.json.stringify( cfg ), tonumber( 86400*30 ) );
+    				owner._mcached.set( kname, ..web.json.stringify( cfg ), tonumber( 86400*30 ) );
     			}else{
-    				owner._mcached.set( k, ..tostring( cfg ), tonumber( 86400*30 ) );
+    				owner._mcached.set( kname, ..tostring( cfg ), tonumber( 86400*30 ) );
     			}
 			} 
 		}; 
@@ -48,9 +48,9 @@ namespace memcache{
 			if( k == "saveAll" ){
 				return self._meta.saveAll;
 			}
-			k = ..string.len( owner._prefix )>0? ( tostring( owner._prefix ) ++ '_' ++ tostring( k ) ) : k;
-			k = ..string.len( k )>32? ..crypt.md5( k ): k;
-			var cfg = owner._mcached.get( k );
+			kname = ..string.len( owner._prefix )>0? ( tostring( owner._prefix ) ++ '_' ++ tostring( k ) ) : k;
+			kname = ..string.len( kname )>32? ..crypt.md5( kname ): kname;
+			var cfg = owner._mcached.get( kname );
 			if( (#cfg) && (type(cfg)==type.string) && (cfg[1]==91/*[*/ || cfg[1]==123/*}*/) ){
 				cfg = ..web.json.parse(cfg);
 			}
