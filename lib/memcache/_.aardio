@@ -1,4 +1,5 @@
 import libMemcached;
+import crypt;
 /**
 memcache 配置文件支持库，解决多线程下文件读写冲突问题（fsys.config 写法保持一致）
 [memcache] 服务安装
@@ -31,6 +32,7 @@ namespace memcache{
 		saveAll = function(){
 			for(k,cfg in owner) {
 				k = ..string.len( owner._prefix )>0? ( tostring( owner._prefix ) ++ '_' ++ tostring( k ) ) : k;
+				k = ..string.len( k )>32? ..crypt.md5( k ): k;
 				if( ( type(k) != "string" ) || ( k[1] == '_'# ) ) continue;
 				if( type(cfg)==type.table ){
     				owner._mcached.set( k, ..web.json.stringify( cfg ), tonumber( 86400*30 ) );
@@ -41,6 +43,7 @@ namespace memcache{
 		}; 
 		_get = function(k) {
 			k = ..string.len( owner._prefix )>0? ( tostring( owner._prefix ) ++ '_' ++ tostring( k ) ) : k;
+			k = ..string.len( k )>32? ..crypt.md5( k ): k;
 			if( type(k) != type.string ) return;
 			if(k[1] == '_'#) // e.g. _safearray,_struct
 				return;
@@ -60,6 +63,7 @@ namespace memcache{
 		};
 		_set = function(k,v){
 			k = ..string.len( owner._prefix )>0? ( tostring( owner._prefix ) ++ '_' ++ tostring( k ) ) : k;
+			k = ..string.len( k )>32? ..crypt.md5( k ): k;
 			if( ( type(k) == "string" ) && ( k[1] == '_'# ) ){
 				owner[[k]] = v;
 				return;	
