@@ -18,7 +18,7 @@ class memcache{
 		if( _cache[server_addr] ) return _cache[server_addr];
 		 this._mcached = ..libMemcached( server_addr );
 		 this._server_addr = server_addr;
-		 this._prefix = tostring( prefix );
+		 this._prefix = type(prefix)==type.string ? prefix : "";
 		 _cache[server_addr] = this;
 		 ..subscribe("beforeSystemEndSesssion",function(){
 		 	this.saveAll();
@@ -31,9 +31,9 @@ namespace memcache{
 	_meta = {
 		saveAll = function(){
 			for(k,cfg in owner) {
+				if( ( type(k) != "string" ) || ( k[1] == '_'# ) ) continue;
 				k = ..string.len( owner._prefix )>0? ( tostring( owner._prefix ) ++ '_' ++ tostring( k ) ) : k;
 				k = ..string.len( k )>32? ..crypt.md5( k ): k;
-				if( ( type(k) != "string" ) || ( k[1] == '_'# ) ) continue;
 				if( type(cfg)==type.table ){
     				owner._mcached.set( k, ..web.json.stringify( cfg ), tonumber( 86400*30 ) );
     			}else{
@@ -42,15 +42,14 @@ namespace memcache{
 			} 
 		}; 
 		_get = function(k) {
-			k = ..string.len( owner._prefix )>0? ( tostring( owner._prefix ) ++ '_' ++ tostring( k ) ) : k;
-			k = ..string.len( k )>32? ..crypt.md5( k ): k;
 			if( type(k) != type.string ) return;
 			if(k[1] == '_'#) // e.g. _safearray,_struct
 				return;
-			
 			if( k == "saveAll" ){
 				return self._meta.saveAll;
 			}
+			k = ..string.len( owner._prefix )>0? ( tostring( owner._prefix ) ++ '_' ++ tostring( k ) ) : k;
+			k = ..string.len( k )>32? ..crypt.md5( k ): k;
 			var cfg = owner._mcached.get( k );
 			if( (#cfg) && (type(cfg)==type.string) && (cfg[1]==91/*[*/ || cfg[1]==123/*}*/) ){
 				cfg = ..web.json.parse(cfg);
@@ -62,8 +61,6 @@ namespace memcache{
 			return cfg; 
 		};
 		_set = function(k,v){
-			k = ..string.len( owner._prefix )>0? ( tostring( owner._prefix ) ++ '_' ++ tostring( k ) ) : k;
-			k = ..string.len( k )>32? ..crypt.md5( k ): k;
 			if( ( type(k) == "string" ) && ( k[1] == '_'# ) ){
 				owner[[k]] = v;
 				return;	
